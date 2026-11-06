@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1d4268">
+  <title>ระบบจัดเก็บข้อมูลนักเรียน</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Tahoma, "Noto Sans Thai", sans-serif;
+      color: #172334;
+      background: #f1f5fb;
+    }
+    .topbar {
+      min-height: 144px;
+      padding: 28px max(24px, calc((100% - 1490px)/2));
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      color: white;
+      background: linear-gradient(110deg, #19395d, #285b8d);
+    }
+    .cap { font-size: 42px; }
+    .topbar h1 { margin: 0 0 8px; font-size: clamp(21px, 3vw, 30px); }
+    .topbar p { margin: 0; font-size: 16px; }
+    main { width: min(1490px, calc(100% - 48px)); margin: 28px auto 40px; }
+    .panel {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 28px;
+      box-shadow: 0 10px 32px rgba(32, 62, 100, .07);
+    }
+    .panel-title { margin: 0 0 20px; font-size: 23px; font-weight: 500; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 18px; }
+    label { display: block; font-weight: bold; margin-bottom: 9px; }
+    input {
+      width: 100%; height: 45px; border: 1px solid #d5dde8; border-radius: 8px;
+      padding: 0 14px; font: inherit; font-size: 16px; outline: none;
+      transition: border .15s, box-shadow .15s;
+    }
+    input:focus { border-color: #78aefb; box-shadow: 0 0 0 4px #d9e9ff; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+    button {
+      border: 1px solid transparent; border-radius: 10px; padding: 11px 20px;
+      font: inherit; font-size: 16px; cursor: pointer; transition: .15s;
+    }
+    button:hover { filter: brightness(.96); transform: translateY(-1px); }
+    .primary { color: white; background: #1670f9; }
+    .secondary { color: #526174; background: white; border-color: #8995a5; }
+    .edit { color: #1670f9; background: white; border-color: #1670f9; padding: 6px 13px; }
+    .delete { color: #e33445; background: white; border-color: #e33445; padding: 6px 13px; }
+    .table-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 18px; margin-bottom: 22px;
+    }
+    .table-head .panel-title { margin: 0 0 6px; }
+    .muted { color: #718096; font-size: 14px; }
+    .search { width: min(330px, 100%); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th, td { text-align: left; padding: 13px 10px; border-bottom: 1px solid #dce3ec; }
+    th { background: #eaf1f9; font-size: 16px; }
+    td { font-size: 16px; }
+    th:last-child, td:last-child { text-align: center; }
+    .row-actions { display: flex; justify-content: center; gap: 7px; }
+    .empty { text-align: center; color: #8290a2; padding: 30px; }
+    footer { text-align: center; color: #718096; padding: 4px 12px 28px; }
+    .notice { margin-top: 14px; color: #718096; font-size: 13px; }
+    @media (max-width: 700px) {
+      .topbar { min-height: 120px; padding: 22px; gap: 15px; }
+      .cap { font-size: 34px; }
+      main { width: calc(100% - 24px); margin-top: 16px; }
+      .panel { padding: 20px 16px; border-radius: 15px; margin-bottom: 16px; }
+      .form-grid { grid-template-columns: 1fr; gap: 15px; }
+      .table-head { align-items: stretch; flex-direction: column; }
+      .search { width: 100%; }
+      .panel-title { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="cap" aria-hidden="true">🎓</div>
+    <div>
+      <h1>ระบบจัดเก็บข้อมูลนักเรียน กรองกาญจน์</h1>
+      <p>แผนกวิชาคอมพิวเตอร์โปรแกรมเมอร์</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2 class="panel-title" id="formTitle">เพิ่มข้อมูลนักเรียน</h2>
+      <form id="studentForm">
+        <div class="form-grid">
+          <div>
+            <label for="firstName">ชื่อ</label>
+            <input id="firstName" name="firstName" placeholder="กรอกชื่อ" required maxlength="80">
+          </div>
+          <div>
+            <label for="lastName">นามสกุล</label>
+            <input id="lastName" name="lastName" placeholder="กรอกนามสกุล" required maxlength="80">
+          </div>
+          <div>
+            <label for="email">อีเมล</label>
+            <input id="email" name="email" type="email" placeholder="example@email.com" maxlength="120">
+          </div>
+          <div>
+            <label for="phone">เบอร์โทรศัพท์</label>
+            <input id="phone" name="phone" type="tel" placeholder="08xxxxxxxx" maxlength="20">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="submit" id="submitBtn">เพิ่ม / บันทึกข้อมูล</button>
+          <button class="secondary" type="reset" id="resetBtn">ล้างข้อมูล</button>
+        </div>
+      </form>
+      <div class="notice">ข้อมูลบันทึกไว้ในเบราว์เซอร์เครื่องนี้ด้วย LocalStorage</div>
+    </section>
+
+    <section class="panel">
+      <div class="table-head">
+        <div>
+          <h2 class="panel-title">ตารางข้อมูลนักเรียน</h2>
+          <div class="muted" id="countText">ข้อมูลทั้งหมด 0 รายการ</div>
+        </div>
+        <input class="search" id="searchInput" placeholder="ค้นหาชื่อ อีเมล หรือเบอร์โทร" aria-label="ค้นหาข้อมูลนักเรียน">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ลำดับ</th>
+              <th>ชื่อ</th>
+              <th>นามสกุล</th>
+              <th>อีเมล</th>
+              <th>เบอร์โทรศัพท์</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="studentTable">
+            <tr><td class="empty" colspan="6">ยังไม่มีข้อมูลนักเรียน</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <section class="panel" style="text-align:center">
+      <h2 class="panel-title">ผู้จัดทำ</h2>
+      <p style="margin:10px 0;font-size:17px">เจนภัทร แตงดี</p>
+      <p style="margin:10px 0;font-size:17px">นายอัครชา ภมรบุตร</p>
+    </section>
+    <footer>Student Management System · GitHub Pages</footer>
+
+  <script>
+    const STORAGE_KEY = "studentManagementData";
+    let students = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let editingId = null;
+
+    const form = document.getElementById("studentForm");
+    const firstName = document.getElementById("firstName");
+    const lastName = document.getElementById("lastName");
+    const email = document.getElementById("email");
+    const phone = document.getElementById("phone");
+    const table = document.getElementById("studentTable");
+    const searchInput = document.getElementById("searchInput");
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    }
+
+    function renderStudents() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const filtered = students.filter(student =>
+        [student.firstName, student.lastName, student.email, student.phone]
+          .some(value => (value || "").toLowerCase().includes(keyword))
+      );
+
+      document.getElementById("countText").textContent =
+        `ข้อมูลทั้งหมด ${students.length} รายการ${keyword ? ` · พบ ${filtered.length} รายการ` : ""}`;
+
+      if (!filtered.length) {
+        table.innerHTML = `<tr><td class="empty" colspan="6">${keyword ? "ไม่พบข้อมูลที่ค้นหา" : "ยังไม่มีข้อมูลนักเรียน"}</td></tr>`;
+        return;
+      }
+
+      table.innerHTML = filtered.map((student, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${escapeHTML(student.firstName)}</td>
+          <td>${escapeHTML(student.lastName)}</td>
+          <td>${escapeHTML(student.email || "-")}</td>
+          <td>${escapeHTML(student.phone || "-")}</td>
+          <td>
+            <div class="row-actions">
+              <button class="edit" type="button" data-edit="${student.id}">แก้ไข</button>
+              <button class="delete" type="button" data-delete="${student.id}">ลบ</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      })[char]);
+    }
+
+    function resetForm() {
+      editingId = null;
+      form.reset();
+      document.getElementById("formTitle").textContent = "เพิ่มข้อมูลนักเรียน";
+      document.getElementById("submitBtn").textContent = "เพิ่ม / บันทึกข้อมูล";
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const record = {
+        firstName: firstName.value.trim(),
+        lastName: lastName.value.trim(),
+        email: email.value.trim(),
+        phone: phone.value.trim()
+      };
+
+      if (editingId !== null) {
+        students = students.map(student =>
+          student.id === editingId ? { ...student, ...record } : student
+        );
+      } else {
+        students.push({ id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), ...record });
+      }
+
+      saveData();
+      resetForm();
+      renderStudents();
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", resetForm);
+    searchInput.addEventListener("input", renderStudents);
+
+    table.addEventListener("click", event => {
+      const editId = event.target.dataset.edit;
+      const deleteId = event.target.dataset.delete;
+
+      if (editId) {
+        const student = students.find(item => item.id === editId);
+        if (!student) return;
+        editingId = editId;
+        firstName.value = student.firstName;
+        lastName.value = student.lastName;
+        email.value = student.email || "";
+        phone.value = student.phone || "";
+        document.getElementById("formTitle").textContent = "แก้ไขข้อมูลนักเรียน";
+        document.getElementById("submitBtn").textContent = "บันทึกการแก้ไข";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      if (deleteId) {
+        const student = students.find(item => item.id === deleteId);
+        if (!student || !confirm(`ต้องการลบข้อมูล ${student.firstName} ${student.lastName} ใช่หรือไม่?`)) return;
+        students = students.filter(item => item.id !== deleteId);
+        saveData();
+        if (editingId === deleteId) resetForm();
+        renderStudents();
+      }
+    });
+
+    renderStudents();
+  </script>
+</body>
+</html>
